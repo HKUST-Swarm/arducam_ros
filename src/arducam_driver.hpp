@@ -17,6 +17,8 @@ struct ArduCamConfig {
     bool show = false;
     bool publish_splited = false;
     int camera_num = 4;
+    bool print_clearness = false;
+    bool is_sync = false;
 };
 
 class ArduCamDriver {
@@ -28,6 +30,12 @@ protected:
     ros::Publisher pub_raw;
     std::vector<ros::Publisher> pub_splited;
     int frame_count = 0;
+    int cam_shown = -1;
+    ros::Time tstart;
+    ros::Timer grab_timer;
+    void grab();
+    void grabRos(const ros::TimerEvent & event);
+    void showImage(cv::Mat & show);
 public:
     void init(ros::NodeHandle & nh);
 };

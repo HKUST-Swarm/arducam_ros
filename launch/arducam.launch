@@ -6,6 +6,8 @@
     <arg name="enable_color" default="true" />
     <arg name="publish_splited" default="false" />
     <arg name="show" default="false" />
+    <arg name="print_clearness" default="false" />
+    <arg name="is_sync" default="false" />
 
     <node name="arducam_ros" pkg="arducam_ros" type="arducam_ros_node" output="screen" >
         <param name="cap_device" value="$(arg cap_device)" />
@@ -16,5 +18,7 @@
         <param name="publish_splited" value="$(arg publish_splited)" />
         <param name="show" value="$(arg show)" />
         <param name="raw8" value="true" />
+        <param name="is_sync" value="$(arg is_sync)" />
+        <param name="print_clearness" value="$(arg print_clearness)" />
     </node>
 </launch>
