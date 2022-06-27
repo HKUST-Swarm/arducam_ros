@@ -4,7 +4,8 @@
     <arg name="height" default="800" />
     <arg name="fps" default="20" />
     <arg name="enable_color" default="true" />
-    <arg name="publish_splited" default="true" />
+    <arg name="publish_splited" default="false" />
+    <arg name="show" default="false" />
 
     <node name="arducam_ros" pkg="arducam_ros" type="arducam_ros_node" output="screen" >
         <param name="cap_device" value="$(arg cap_device)" />
@@ -13,5 +14,7 @@
         <param name="fps" value="$(arg fps)" />
         <param name="enable_color" value="$(arg enable_color)" />
         <param name="publish_splited" value="$(arg publish_splited)" />
+        <param name="show" value="$(arg show)" />
+        <param name="raw8" value="true" />
     </node>
 </launch>

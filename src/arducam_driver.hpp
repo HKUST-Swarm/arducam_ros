@@ -6,12 +6,13 @@
 
 #define COLOR_RAW_8 1111967570
 #define COLOR_Y16 540422489
+#define CVT_COLOR_CODE cv::COLOR_BayerRG2BGR 
 
 struct ArduCamConfig {
     int fps = 20;
     int width = 5120;
     int height = 800;
-    bool enable_color = true;
+    bool raw8 = true;
     int cap_device = 0;
     bool show = false;
     bool publish_splited = false;
