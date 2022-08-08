@@ -3,6 +3,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <thread>
 #include <opencv2/opencv.hpp>
+#include <image_transport/image_transport.h>
 
 #define COLOR_RAW_8 1111967570
 #define COLOR_Y16 540422489
@@ -27,8 +28,8 @@ protected:
     std::thread grab_thread;
     cv::VideoCapture cap;
     void grabThread();
-    ros::Publisher pub_raw;
-    std::vector<ros::Publisher> pub_splited;
+    image_transport::Publisher pub_raw;
+    std::vector<image_transport::Publisher> pub_splited;
     int frame_count = 0;
     int cam_shown = -1;
     ros::Time tstart;
@@ -36,6 +37,7 @@ protected:
     void grab();
     void grabRos(const ros::TimerEvent & event);
     void showImage(cv::Mat & show);
+    image_transport::ImageTransport * it = nullptr;
 public:
     void init(ros::NodeHandle & nh);
 };

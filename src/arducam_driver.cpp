@@ -1,6 +1,5 @@
 #include "arducam_driver.hpp"
 
-
 cv::Mat convert(cv::Mat data, int rows) {
     cv::Mat img = data.reshape(1, rows);
     cv::cvtColor(img, img, CVT_COLOR_CODE);
@@ -52,12 +51,13 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
     }
 
     //Create publishers
-    pub_raw = nh.advertise<sensor_msgs::Image>("/arducam/image_raw", 1);
+    it = new image_transport::ImageTransport(nh);
+    pub_raw = it->advertise("/arducam/image", 1);
     if (config.publish_splited) {
         for (int i = 0; i < config.camera_num; i++) {
             std::stringstream ss;
-            ss << "/arducam/image_raw_" << i;
-            pub_splited.push_back(nh.advertise<sensor_msgs::Image>(ss.str(), 1));
+            ss << "/arducam/image_" << i;
+            pub_splited.push_back(it->advertise(ss.str(), 1));
         }
     }
 

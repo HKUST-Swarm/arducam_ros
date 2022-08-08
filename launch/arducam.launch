@@ -7,8 +7,9 @@
     <arg name="publish_splited" default="false" />
     <arg name="show" default="false" />
     <arg name="print_clearness" default="false" />
-    <arg name="is_sync" default="false" />
+    <arg name="jpeg_quality" default="90" />
 
+    <param name="/arducam/image/compressed/jpeg_quality" value="$(arg jpeg_quality)" />
     <node name="arducam_ros" pkg="arducam_ros" type="arducam_ros_node" output="screen" >
         <param name="cap_device" value="$(arg cap_device)" />
         <param name="width" value="$(arg width)" />
