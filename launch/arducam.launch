@@ -8,6 +8,9 @@
     <arg name="show" default="false" />
     <arg name="print_clearness" default="false" />
     <arg name="jpeg_quality" default="90" />
+    <arg name="is_sync" default="false" />
+    <arg name="exposure" default="300" />
+    <arg name="gain" default="1" />
 
     <param name="/arducam/image/compressed/jpeg_quality" value="$(arg jpeg_quality)" />
     <node name="arducam_ros" pkg="arducam_ros" type="arducam_ros_node" output="screen" >
@@ -20,6 +23,8 @@
         <param name="show" value="$(arg show)" />
         <param name="raw8" value="true" />
         <param name="is_sync" value="$(arg is_sync)" />
+        <param name="exposure" value="$(arg exposure)" />
+        <param name="gain" value="$(arg gain)" />
         <param name="print_clearness" value="$(arg print_clearness)" />
     </node>
 </launch>

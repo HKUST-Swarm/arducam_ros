@@ -6,6 +6,15 @@ cv::Mat convert(cv::Mat data, int rows) {
     return img;
 }
 
+void setExposureGain(int exp, int gain) {
+    char cmd[64] = {0};
+    printf("Setting exposure to %d gain to %d by v4l2-ctrl", exp, gain);
+    sprintf(cmd, "/usr/bin/v4l2-ctl -c exposure=%d", exp);
+    system(cmd);
+    sprintf(cmd, "/usr/bin/v4l2-ctl -c gain=%d", gain);
+    system(cmd);
+}
+
 double clearness(cv::Mat & img) {
     //Clearness for focus
     cv::Mat gray, imgSobel;
@@ -27,6 +36,8 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
     nh.param<bool>("publish_splited", config.publish_splited, false);
     nh.param<bool>("print_clearness", config.print_clearness, false);
     nh.param<bool>("sync", config.is_sync, false);
+    nh.param<int>("exposure", config.exposure, 300);
+    nh.param<int>("gain", config.gain, 1);
     ROS_INFO("[AruCamDriver] Trying to open device: %d", config.cap_device); 
     bool succ = cap.open(config.cap_device, cv::CAP_V4L2);
     if (succ) {
@@ -121,6 +132,9 @@ void ArduCamDriver::grab() {
 
         if (config.show) {
            showImage(show);
+        }
+        if (frame_count == 0) {
+            setExposureGain(config.exposure, config.gain);
         }
 
         frame_count ++;

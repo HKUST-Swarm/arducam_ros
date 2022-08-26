@@ -20,6 +20,8 @@ struct ArduCamConfig {
     int camera_num = 4;
     bool print_clearness = false;
     bool is_sync = false;
+    int exposure = 300;
+    int gain = 1;
 };
 
 class ArduCamDriver {
