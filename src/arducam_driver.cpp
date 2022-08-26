@@ -92,10 +92,11 @@ void ArduCamDriver::grab() {
     }
     cv::Mat frame;
     bool succ = cap.read(frame);
+    auto ts = ros::Time::now();
     frame = convert(frame, config.height);
     if (!frame.empty()) {
         cv_bridge::CvImage cv_img;
-        cv_img.header.stamp = ros::Time::now();
+        cv_img.header.stamp = ts;
         cv_img.header.frame_id = "arducam";
         cv_img.encoding = "bgr8";
         cv_img.image = frame;
