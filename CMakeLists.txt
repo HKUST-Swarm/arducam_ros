@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(arducam_ros)
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+set(CMAKE_BUILD_TYPE "Release")
+add_compile_options(-std=c++14)
+set(CMAKE_CXX_FLAGS_RELEASE "-g -O3 -Wno-write-strings -Wno-format-overflow")
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)

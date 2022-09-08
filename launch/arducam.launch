@@ -9,7 +9,7 @@
     <arg name="print_clearness" default="false" />
     <arg name="jpeg_quality" default="90" />
     <arg name="is_sync" default="false" />
-    <arg name="exposure" default="300" />
+    <arg name="exposure" default="400" />
     <arg name="gain" default="1" />
 
     <param name="/arducam/image/compressed/jpeg_quality" value="$(arg jpeg_quality)" />

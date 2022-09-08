@@ -1,9 +1,10 @@
 #include "arducam_driver.hpp"
 
-cv::Mat convert(cv::Mat data, int rows) {
-    cv::Mat img = data.reshape(1, rows);
-    cv::cvtColor(img, img, CVT_COLOR_CODE);
-    return img;
+cv::Mat convert(cv::Mat data, int rows, bool is_raw) {
+    cv::Mat img = data.reshape(0, rows);
+    cv::Mat out;
+    cv::cvtColor(img, out, cv::COLOR_BayerRG2BGR);
+    return out;
 }
 
 void setExposureGain(int exp, int gain) {
@@ -119,7 +120,7 @@ void ArduCamDriver::grab() {
                         pub_splited[i].publish(cv_img.toImageMsg());
                     }
                     if (config.print_clearness) {
-                        printf("%d: %.1f\%\t", i, clearness(cv_img.image)*100);
+                        printf("%d: %.1f%%\t", i, clearness(cv_img.image)*100);
                     }
                 }
                 if (config.show && cam_shown == i) {
@@ -152,7 +153,7 @@ void ArduCamDriver::showImage(cv::Mat & show) {
     if (cam_shown != -1) {
         //Show clearness on image
         double clear = clearness(show);
-        sprintf(title, "Clearness %.1f\%", clear*100);
+        sprintf(title, "Clearness %.1f%%", clear*100);
         cv::putText(show, title, cv::Point(10, 30), 
                 cv::FONT_HERSHEY_PLAIN, 1.5, cv::Scalar(255, 255, 0));
     }

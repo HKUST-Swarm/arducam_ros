@@ -7,7 +7,6 @@
 
 #define COLOR_RAW_8 1111967570
 #define COLOR_Y16 540422489
-#define CVT_COLOR_CODE cv::COLOR_BayerRG2BGR 
 
 struct ArduCamConfig {
     int fps = 20;
