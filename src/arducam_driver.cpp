@@ -1,6 +1,6 @@
 #include "arducam_driver.hpp"
 
-cv::Mat convert(cv::Mat data, int rows, bool is_raw) {
+cv::Mat convert(cv::Mat data, int rows) {
     cv::Mat img = data.reshape(0, rows);
     cv::Mat out;
     cv::cvtColor(img, out, cv::COLOR_BayerRG2BGR);
