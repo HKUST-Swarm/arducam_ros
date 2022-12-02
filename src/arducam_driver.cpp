@@ -7,12 +7,14 @@ cv::Mat convert(cv::Mat data, int rows) {
     return out;
 }
 
+bool half_resize = false;
+
 void setExposureGain(int exp, int gain) {
     char cmd[64] = {0};
     printf("Setting exposure to %d gain to %d by v4l2-ctrl", exp, gain);
     sprintf(cmd, "/usr/bin/v4l2-ctl -c exposure=%d", exp);
     system(cmd);
-    sprintf(cmd, "/usr/bin/v4l2-ctl -c gain=%d", gain);
+    sprintf(cmd, "/usr/bin/v4l2-ctl -c analogue_gain=%d", gain);
     system(cmd);
 }
 
@@ -28,8 +30,8 @@ double clearness(cv::Mat & img) {
 
 void ArduCamDriver::init(ros::NodeHandle & nh) {
     nh.param<int>("fps", config.fps, 20);
-    nh.param<int>("width", config.width, 5120);
-    nh.param<int>("height", config.height, 800);
+    nh.param<int>("width", config.width, WIDTH);
+    nh.param<int>("height", config.height, HEIGHT);
     nh.param<bool>("raw8", config.raw8, true);
     nh.param<int>("cap_device", config.cap_device, 0);
     nh.param<bool>("show", config.show, false);
@@ -39,8 +41,12 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
     nh.param<bool>("sync", config.is_sync, false);
     nh.param<int>("exposure", config.exposure, 300);
     nh.param<int>("gain", config.gain, 1);
+    nh.param<bool>("half_resize", config.half_resize, false);
     ROS_INFO("[AruCamDriver] Trying to open device: %d", config.cap_device); 
     bool succ = cap.open(config.cap_device, cv::CAP_V4L2);
+    
+    half_resize = config.half_resize;
+    
     if (succ) {
         ROS_INFO("[ArduCamDriver] Succ initialized device %d: fps=%d, width=%d, height=%d, raw8=%d publish_splited=%d",
             config.cap_device, config.fps, config.width, config.height, config.raw8, config.publish_splited);
@@ -58,6 +64,8 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
     cap.set(cv::CAP_PROP_FRAME_WIDTH, config.width);
     cap.set(cv::CAP_PROP_FRAME_HEIGHT, config.height);
     cap.set(cv::CAP_PROP_CONVERT_RGB, 0);
+    cap.set(cv::CAP_PROP_POS_FRAMES,0);
+    cap.set(cv::CAP_PROP_BUFFERSIZE,2);
     if (!config.is_sync) {
         cap.set(cv::CAP_PROP_FPS, config.fps);
     }
@@ -83,6 +91,11 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
         }
     }
 }
+
+ArduCamDriver::~ArduCamDriver() {
+    cap.release();
+}
+
 void ArduCamDriver::grabRos(const ros::TimerEvent & event) {
     grab();
 }
@@ -95,6 +108,18 @@ void ArduCamDriver::grab() {
     bool succ = cap.read(frame);
     auto ts = ros::Time::now();
     frame = convert(frame, config.height);
+
+#ifdef DEBUG_TEST
+    cv::Mat f = frame(cv::Rect(0, 0, 1280, 800));
+    cv::imshow("frame", f);
+    printf("Debayer: %.1fms\n", (ros::Time::now()- ts).toSec()*1000);
+    cv::waitKey(1);
+    return;
+#endif
+
+    if (half_resize){
+    	cv::resize(frame, frame, cv::Size(3072, 480));
+    }
     if (!frame.empty()) {
         cv_bridge::CvImage cv_img;
         cv_img.header.stamp = ts;
@@ -175,7 +200,5 @@ void ArduCamDriver::grabThread() {
     tstart = ros::Time::now();
     while (ros::ok()) {
         grab();
-        ros::Duration(0.1 / config.fps).sleep();
     }
-    cap.release();
 }

@@ -11,6 +11,7 @@
     <arg name="is_sync" default="false" />
     <arg name="exposure" default="400" />
     <arg name="gain" default="1" />
+    <arg name="half_resize" default="false" />
 
     <param name="/arducam/image/compressed/jpeg_quality" value="$(arg jpeg_quality)" />
     <node name="arducam_ros" pkg="arducam_ros" type="arducam_ros_node" output="screen" >
@@ -26,5 +27,7 @@
         <param name="exposure" value="$(arg exposure)" />
         <param name="gain" value="$(arg gain)" />
         <param name="print_clearness" value="$(arg print_clearness)" />
+        <param name="half_resize" value="$(arg half_resize)" />
+        
     </node>
 </launch>

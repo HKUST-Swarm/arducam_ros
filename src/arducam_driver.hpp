@@ -8,10 +8,13 @@
 #define COLOR_RAW_8 1111967570
 #define COLOR_Y16 540422489
 
+#define WIDTH 480
+#define HEIGHT 3072
+
 struct ArduCamConfig {
     int fps = 20;
-    int width = 5120;
-    int height = 800;
+    int width = WIDTH;
+    int height = HEIGHT;
     bool raw8 = true;
     int cap_device = 0;
     bool show = false;
@@ -21,6 +24,7 @@ struct ArduCamConfig {
     bool is_sync = false;
     int exposure = 300;
     int gain = 1;
+    bool half_resize = false;
 };
 
 class ArduCamDriver {
@@ -41,4 +45,5 @@ protected:
     image_transport::ImageTransport * it = nullptr;
 public:
     void init(ros::NodeHandle & nh);
+    ~ArduCamDriver();
 };
