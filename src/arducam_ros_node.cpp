@@ -4,7 +4,7 @@
 int main(int argc, char **argv) {
     ros::init(argc, argv, "arducam_ros");
     ros::NodeHandle nh("arducam_ros");
-    ArduCamDriver driver;
+    ArduCamDriverRealsenseSyn driver;
     driver.init(nh);
     ros::spin();
     return 0;

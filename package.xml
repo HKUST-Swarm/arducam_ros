@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>arducam_ros</name>
+  <name>arducam_ros_syn_realsense</name>
   <version>0.0.0</version>
   <description>The arducam_ros package</description>
 
-  <maintainer email="xuhao3e8@gmail.com">dji</maintainer>
+  <maintainer email="mortyl0834@gmail.com">dji</maintainer>
 
 
   <license>LGPLv3</license>

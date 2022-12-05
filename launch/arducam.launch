@@ -13,7 +13,7 @@
     <arg name="gain" default="1" />
 
     <param name="/arducam/image/compressed/jpeg_quality" value="$(arg jpeg_quality)" />
-    <node name="arducam_ros" pkg="arducam_ros" type="arducam_ros_node" output="screen" >
+    <node name="arducam_ros_syn" pkg="arducam_ros_syn_realsense" type="arducam_ros_syn_realsense_node" output="screen" >
         <param name="cap_device" value="$(arg cap_device)" />
         <param name="width" value="$(arg width)" />
         <param name="height" value="$(arg height)" />

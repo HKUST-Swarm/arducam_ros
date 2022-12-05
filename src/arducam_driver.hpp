@@ -4,6 +4,7 @@
 #include <thread>
 #include <opencv2/opencv.hpp>
 #include <image_transport/image_transport.h>
+#include <memory>
 
 #define COLOR_RAW_8 1111967570
 #define COLOR_Y16 540422489
@@ -23,7 +24,7 @@ struct ArduCamConfig {
     int gain = 1;
 };
 
-class ArduCamDriver {
+class ArduCamDriverRealsenseSyn {
 protected:  
     ArduCamConfig config;
     std::thread grab_thread;
@@ -41,4 +42,8 @@ protected:
     image_transport::ImageTransport * it = nullptr;
 public:
     void init(ros::NodeHandle & nh);
+    ~ArduCamDriverRealsenseSyn(){};
+private:
+    void cb(const sensor_msgs::CompressedImage & image){};
+    std::shared_ptr<ros::Subscriber> realsense_sub_ = nullptr;
 };

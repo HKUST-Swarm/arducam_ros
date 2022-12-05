@@ -1,9 +1,19 @@
 #include "arducam_driver.hpp"
 
+ros::Time current_time;
+int32_t get_new_time = 0;
+void realsense_cb(const sensor_msgs::CompressedImage & image){
+    get_new_time = 1;
+    current_time = image.header.stamp;
+}
+
+
+
 cv::Mat convert(cv::Mat data, int rows) {
     cv::Mat img = data.reshape(0, rows);
     cv::Mat out;
     cv::cvtColor(img, out, cv::COLOR_BayerRG2BGR);
+    //cv::resize(out, out, cv::Size(3072, 480));
     return out;
 }
 
@@ -26,7 +36,7 @@ double clearness(cv::Mat & img) {
     return cv::mean(imgSobel)[0];
 }
 
-void ArduCamDriver::init(ros::NodeHandle & nh) {
+void ArduCamDriverRealsenseSyn::init(ros::NodeHandle & nh) {
     nh.param<int>("fps", config.fps, 20);
     nh.param<int>("width", config.width, 5120);
     nh.param<int>("height", config.height, 800);
@@ -39,13 +49,14 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
     nh.param<bool>("sync", config.is_sync, false);
     nh.param<int>("exposure", config.exposure, 300);
     nh.param<int>("gain", config.gain, 1);
+    ROS_INFO("[Subscribe to Realsense]");
     ROS_INFO("[AruCamDriver] Trying to open device: %d", config.cap_device); 
     bool succ = cap.open(config.cap_device, cv::CAP_V4L2);
     if (succ) {
-        ROS_INFO("[ArduCamDriver] Succ initialized device %d: fps=%d, width=%d, height=%d, raw8=%d publish_splited=%d",
+        ROS_INFO("[ArduCamDriverRealsenseSyn] Succ initialized device %d: fps=%d, width=%d, height=%d, raw8=%d publish_splited=%d",
             config.cap_device, config.fps, config.width, config.height, config.raw8, config.publish_splited);
     } else {
-        ROS_ERROR("[ArduCamDriver] Failed to initialize device %d", config.cap_device);
+        ROS_ERROR("[ArduCamDriverRealsenseSyn] Failed to initialize device %d", config.cap_device);
     }
 
     if (config.raw8) {
@@ -73,21 +84,30 @@ void ArduCamDriver::init(ros::NodeHandle & nh) {
         }
     }
 
+    this->realsense_sub_ = std::make_shared<ros::Subscriber>(nh.subscribe("/camera/color/image_raw/compressed", 1, &ArduCamDriverRealsenseSyn::cb, this));
+
+    if (this->realsense_sub_ == nullptr){
+        ROS_ERROR("Subscribe to realsense failed");
+        return;
+    }
     //Start grab thread if success
     if (succ) {
         if (config.is_sync) {
-            grab_thread = std::thread(&ArduCamDriver::grabThread, this);
+            printf("xxxxxxxxxxxInit Grap threadxxxxxxxxxxxx\n");
+            grab_thread = std::thread(&ArduCamDriverRealsenseSyn::grabThread, this);
         } else {
             //Software trigger
-            grab_timer = nh.createTimer(ros::Duration(1.0/config.fps), &ArduCamDriver::grabRos, this);
+            printf("xxxxxxxxxxxInit Grap unsyn threadxxxxxxxxxxxx\n");
+            grab_timer = nh.createTimer(ros::Duration(1.0/config.fps), &ArduCamDriverRealsenseSyn::grabRos, this);
         }
     }
 }
-void ArduCamDriver::grabRos(const ros::TimerEvent & event) {
+void ArduCamDriverRealsenseSyn::grabRos(const ros::TimerEvent & event) {
     grab();
 }
 
-void ArduCamDriver::grab() {
+
+void ArduCamDriverRealsenseSyn::grab() {
     if (frame_count == 0) {
         tstart = ros::Time::now();
     }
@@ -96,59 +116,65 @@ void ArduCamDriver::grab() {
     auto ts = ros::Time::now();
     frame = convert(frame, config.height);
     if (!frame.empty()) {
-        cv_bridge::CvImage cv_img;
-        cv_img.header.stamp = ts;
-        cv_img.header.frame_id = "arducam";
-        cv_img.encoding = "bgr8";
-        cv_img.image = frame;
-        cv::Mat show;
-        if (config.show && cam_shown == -1) {
-            cv::resize(frame, show, 
-                cv::Size(frame.cols / config.camera_num, frame.rows / config.camera_num));
-        }
-        //publish
-        pub_raw.publish(cv_img.toImageMsg());
-        if (config.publish_splited || config.print_clearness || (cam_shown >= 0 && config.show)) {
-            if (config.print_clearness) {
-                printf("[ArduCam] clearness:");
+        if(get_new_time){
+            get_new_time= 0;
+            ROS_ERROR("Get New time grab image");
+            cv_bridge::CvImage cv_img;
+            ROS_INFO("Delay:%5.2f",(ts.toSec() -current_time.toSec()));
+            cv_img.header.stamp = current_time;
+            cv_img.header.frame_id = "arducam";
+            cv_img.encoding = "bgr8";
+            cv_img.image = frame;
+            cv::Mat show;
+            if (config.show && cam_shown == -1) {
+                cv::resize(frame, show, 
+                    cv::Size(frame.cols / config.camera_num, frame.rows / config.camera_num));
             }
-            for (int i = 0; i < config.camera_num; i++) {
-                if (config.publish_splited || cam_shown == i || config.print_clearness) {
-                    cv_img.image = frame(cv::Rect(i * frame.cols / config.camera_num, 0, 
-                            frame.cols / config.camera_num, frame.rows));
-                    if (config.publish_splited) {
-                        pub_splited[i].publish(cv_img.toImageMsg());
+            //publish
+            pub_raw.publish(cv_img.toImageMsg());
+            if (config.publish_splited || config.print_clearness || (cam_shown >= 0 && config.show)) {
+                if (config.print_clearness) {
+                    printf("[ArduCam] clearness:");
+                }
+                for (int i = 0; i < config.camera_num; i++) {
+                    if (config.publish_splited || cam_shown == i || config.print_clearness) {
+                        cv_img.image = frame(cv::Rect(i * frame.cols / config.camera_num, 0, 
+                                frame.cols / config.camera_num, frame.rows));
+                        if (config.publish_splited) {
+                            pub_splited[i].publish(cv_img.toImageMsg());
+                        }
+                        if (config.print_clearness) {
+                            printf("%d: %.1f%%\t", i, clearness(cv_img.image)*100);
+                        }
                     }
-                    if (config.print_clearness) {
-                        printf("%d: %.1f%%\t", i, clearness(cv_img.image)*100);
+                    if (config.show && cam_shown == i) {
+                        show = cv_img.image;
                     }
                 }
-                if (config.show && cam_shown == i) {
-                    show = cv_img.image;
+                if (config.print_clearness) {
+                    printf("\n");
                 }
             }
-            if (config.print_clearness) {
-                printf("\n");
+
+            if (config.show) {
+            showImage(show);
             }
+            if (frame_count == 0) {
+                setExposureGain(config.exposure, config.gain);
+            }
+            frame_count ++;
+            double tgrab = (ros::Time::now() - tstart).toSec();
+            ROS_INFO_THROTTLE(1.0, "[ArduCam] Total %d freq:%.1ffps", 
+                frame_count, frame_count/tgrab);
+        } else {
+            ROS_ERROR("Failed to get new time");
         }
-
-        if (config.show) {
-           showImage(show);
-        }
-        if (frame_count == 0) {
-            setExposureGain(config.exposure, config.gain);
-        }
-
-        frame_count ++;
-        double tgrab = (ros::Time::now() - tstart).toSec();
-        ROS_INFO_THROTTLE(1.0, "[ArduCam] Total %d freq:%.1ffps", 
-            frame_count, frame_count/tgrab);
     } else {
         ROS_WARN("[ArduCam] Failed to grab a frame");
     }
 }
 
-void ArduCamDriver::showImage(cv::Mat & show) {
+void ArduCamDriverRealsenseSyn::showImage(cv::Mat & show) {
     char title[64] = {0};
     if (cam_shown != -1) {
         //Show clearness on image
@@ -170,7 +196,7 @@ void ArduCamDriver::showImage(cv::Mat & show) {
     }
 }
 
-void ArduCamDriver::grabThread() {
+void ArduCamDriverRealsenseSyn::grabThread() {
     ROS_INFO("[ArduCam] Start to grab....\n");
     tstart = ros::Time::now();
     while (ros::ok()) {
