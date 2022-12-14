@@ -10,7 +10,7 @@ If enable show, it will display the image in a window.
 If enable publish_split, it will publish the splited images, this is for quad-camera.
 
 ## Note
-This is a third-party package, it is not maintained by the manufacturer. If you have any questions in hardware, please DO NOT contact the me.
+This is a third-party package, it is not maintained by the manufacturer. If you have any questions in hardware, please DO NOT contact me.
 
 ## LICENSE
 LGPL-V3
